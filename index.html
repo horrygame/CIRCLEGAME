@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Шарики Игра</title>
+    <style>
+        body { margin: 0; padding: 0; background: #323250; }
+        canvas { display: block; margin: 0 auto; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        // JavaScript код игры
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Установка размеров canvas
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        // Основные переменные
+        const colors = {
+            background: '#323250',
+            playButton: '#c34a3c',
+            circlePass: '#e98216',
+            defaultButton: '#4682b4',
+            text: '#ffffff'
+        };
+        
+        // Загрузка изображений
+        const images = {};
+        const imagePaths = {
+            character: 'classic_guy.png',
+            battlePass: 'icon_battle_pass.png',
+            play: 'icon_play.png',
+            statistics: 'icon_statistics.png',
+            shop: 'icon_shop.png',
+            quests: 'icon_quests.png',
+            friends: 'icon_friends.png'
+        };
+        
+        // Функция загрузки изображений
+        function loadImages() {
+            return new Promise((resolve) => {
+                let loaded = 0;
+                const total = Object.keys(imagePaths).length;
+                
+                for (const [key, path] of Object.entries(imagePaths)) {
+                    const img = new Image();
+                    img.onload = () => {
+                        loaded++;
+                        if (loaded === total) resolve();
+                    };
+                    img.src = path;
+                    images[key] = img;
+                }
+            });
+        }
+        
+        // Класс кнопки
+        class Button {
+            constructor(x, y, width, height, text, icon, isCorner = false, color = colors.defaultButton) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+                this.text = text;
+                this.icon = icon;
+                this.isCorner = isCorner;
+                this.color = color;
+                this.isHovered = false;
+            }
+            
+            draw() {
+                // Рисуем кнопку
+                ctx.fillStyle = this.isHovered ? this.lightenColor(this.color, 20) : this.color;
+                if (this.isCorner) {
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                    ctx.strokeStyle = colors.text;
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(this.x, this.y, this.width, this.height);
+                } else {
+                    this.roundRect(this.x, this.y, this.width, this.height, 15);
+                }
+                
+                // Рисуем иконку и текст
+                if (this.icon && images[this.icon]) {
+                    const iconSize = 40;
+                    const iconX = this.isCorner ? 
+                        this.x + this.width/2 - iconSize/2 : 
+                        this.x + 15;
+                    const iconY = this.isCorner ? 
+                        this.y + this.height/2 - iconSize/2 - 15 : 
+                        this.y + this.height/2 - iconSize/2;
+                    
+                    ctx.drawImage(images[this.icon], iconX, iconY, iconSize, iconSize);
+                    
+                    // Текст
+                    ctx.fillStyle = colors.text;
+                    ctx.font = '28px Arial';
+                    ctx.textAlign = 'center';
+                    const textY = this.isCorner ? this.y + this.height/2 + 25 : this.y + this.height/2 + 10;
+                    ctx.fillText(this.text, this.x + this.width/2, textY);
+                } else {
+                    // Только текст
+                    ctx.fillStyle = colors.text;
+                    ctx.font = '28px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(this.text, this.x + this.width/2, this.y + this.height/2 + 10);
+                }
+            }
+            
+            roundRect(x, y, width, height, radius) {
+                ctx.beginPath();
+                ctx.moveTo(x + radius, y);
+                ctx.lineTo(x + width - radius, y);
+                ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+                ctx.lineTo(x + width, y + height - radius);
+                ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                ctx.lineTo(x + radius, y + height);
+                ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+                ctx.lineTo(x, y + radius);
+                ctx.quadraticCurveTo(x, y, x + radius, y);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.strokeStyle = colors.text;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+            
+            lightenColor(color, percent) {
+                // Упрощенная функция для осветления цвета
+                return color; // В реальной реализации нужно преобразовать HEX в RGB и осветлить
+            }
+            
+            isPointInside(x, y) {
+                return x >= this.x && x <= this.x + this.width && 
+                       y >= this.y && y <= this.y + this.height;
+            }
+        }
+        
+        // Создание кнопок
+        let buttons = [];
+        
+        function createButtons() {
+            const cornerSize = canvas.width / 4;
+            const regularWidth = 180;
+            const regularHeight = 60;
+            const margin = 20;
+            
+            buttons = [
+                new Button(0, 0, cornerSize, cornerSize, "Статистика", "statistics", true),
+                new Button(canvas.width - cornerSize, 0, cornerSize, cornerSize, "Магазин", "shop", true),
+                new Button(margin, canvas.height/2 - regularHeight/2, regularWidth, regularHeight, "Квесты", "quests"),
+                new Button(canvas.width - regularWidth - margin, canvas.height/2 - regularHeight/2, regularWidth, regularHeight, "Друзья", "friends"),
+                new Button(0, canvas.height - cornerSize, cornerSize, cornerSize, "Circle Pass", "battlePass", true, colors.circlePass),
+                new Button(canvas.width - cornerSize, canvas.height - cornerSize, cornerSize, cornerSize, "Играть", "play", true, colors.playButton)
+            ];
+        }
+        
+        // Основной игровой цикл
+        function gameLoop() {
+            // Очистка canvas
+            ctx.fillStyle = colors.background;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Рисуем персонажа в центре
+            if (images.character) {
+                const charSize = Math.min(canvas.width, canvas.height) / 4;
+                const charX = canvas.width/2 - charSize/2;
+                const charY = canvas.height/2 - charSize/2;
+                ctx.drawImage(images.character, charX, charY, charSize, charSize);
+            }
+            
+            // Рисуем кнопки
+            buttons.forEach(button => button.draw());
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Обработка событий
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            buttons.forEach(button => {
+                button.isHovered = button.isPointInside(x, y);
+            });
+        });
+        
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            buttons.forEach(button => {
+                if (button.isPointInside(x, y)) {
+                    console.log(`Нажата кнопка: ${button.text}`);
+                    // Здесь можно добавить логику для каждой кнопки
+                }
+            });
+        });
+        
+        // Запуск игры после загрузки изображений
+        loadImages().then(() => {
+            createButtons();
+            gameLoop();
+        });
+        
+        // Обработка изменения размера окна
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            createButtons();
+        });
+    </script>
+</body>
+</html>
