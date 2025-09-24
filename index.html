@@ -6,7 +6,6 @@
     <title>Шарики - Мультиплеерная Игра</title>
     <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
     <style>
-        /* Стили остаются без изменений */
         * {
             margin: 0;
             padding: 0;
@@ -29,6 +28,7 @@
             width: 100%;
             height: 100%;
             display: none;
+            z-index: 1;
         }
 
         .screen.active {
@@ -151,20 +151,22 @@
             background: #4682b4;
         }
 
-        /* Экран поиска */
+        /* Экран поиска - должен быть поверх всего */
         #search-screen {
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.9);
             display: flex;
             justify-content: center;
             align-items: center;
+            z-index: 1000; /* Высокий z-index чтобы быть поверх всего */
         }
 
         .search-container {
             text-align: center;
-            background: rgba(50, 50, 80, 0.9);
+            background: rgba(50, 50, 80, 0.95);
             padding: 40px;
             border-radius: 15px;
             border: 2px solid #4682b4;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
         }
 
         .loading-spinner {
@@ -190,6 +192,7 @@
             border-radius: 5px;
             cursor: pointer;
             margin-top: 20px;
+            font-size: 16px;
         }
 
         .cancel-btn:hover {
@@ -199,6 +202,7 @@
         /* Игровой экран */
         #game-screen {
             background: #888;
+            z-index: 2;
         }
 
         #game-canvas {
@@ -214,6 +218,7 @@
             width: 100%;
             padding: 20px;
             pointer-events: none;
+            z-index: 3;
         }
 
         #game-timer {
@@ -303,12 +308,12 @@
         </div>
     </div>
 
-    <!-- Экран поиска игры -->
+    <!-- Экран поиска игры - теперь поверх всего -->
     <div id="search-screen" class="screen">
         <div class="search-container">
             <h2>Поиск игры</h2>
             <div class="loading-spinner"></div>
-            <div id="player-count">Игроков: 1/6</div>
+            <div id="player-count">Игроков: 0/6</div>
             <div id="countdown-timer">Ожидание игроков: 30с</div>
             <button id="cancel-search" class="cancel-btn">Отмена</button>
         </div>
@@ -336,7 +341,8 @@
                 this.playerId = null;
                 this.playerName = 'Игрок';
                 this.lastMoveTime = 0;
-                this.moveInterval = 50; // Минимальное время между отправками движения (мс)
+                this.moveInterval = 50;
+                this.isConnected = false;
                 
                 this.init();
             }
@@ -348,41 +354,69 @@
             }
             
             connectToServer() {
-                // Подключаемся к серверу Socket.IO
-                // Замените URL на адрес вашего сервера
-                this.socket = io('https://server-of-circule.onrender.com', {
-                    transports: ['websocket']
-                });
-                
-                this.socket.on('connect', () => {
-                    console.log('Подключено к серверу');
-                    this.playerId = this.socket.id;
-                });
-                
-                this.socket.on('disconnect', () => {
-                    console.log('Отключено от сервера');
-                    alert('Соединение с сервером потеряно');
-                    this.showScreen('main-menu');
-                });
-                
-                // Обработчики событий от сервера
-                this.socket.on('room_update', (data) => {
-                    this.updateSearchInfo(data);
-                });
-                
-                this.socket.on('game_start', (gameState) => {
-                    this.gameState = gameState;
-                    this.showScreen('game-screen');
-                });
-                
-                this.socket.on('game_state', (gameState) => {
-                    this.gameState = gameState;
-                });
-                
-                this.socket.on('game_over', (results) => {
-                    alert(`Игра завершена! Победитель: ${results.winner}`);
-                    this.showScreen('main-menu');
-                });
+                try {
+                    // Подключаемся к серверу Socket.IO
+                    this.socket = io('http://localhost:3000', {
+                        transports: ['websocket'],
+                        timeout: 10000
+                    });
+                    
+                    this.socket.on('connect', () => {
+                        console.log('Подключено к серверу');
+                        this.isConnected = true;
+                        this.playerId = this.socket.id;
+                    });
+                    
+                    this.socket.on('disconnect', (reason) => {
+                        console.log('Отключено от сервера:', reason);
+                        this.isConnected = false;
+                        if (this.currentScreen !== 'main-menu') {
+                            alert('Соединение с сервером потеряно');
+                            this.showScreen('main-menu');
+                        }
+                    });
+                    
+                    this.socket.on('connect_error', (error) => {
+                        console.error('Ошибка подключения:', error);
+                        alert('Не удалось подключиться к серверу. Проверьте, запущен ли сервер.');
+                    });
+                    
+                    // Обработчики событий от сервера
+                    this.socket.on('room_update', (data) => {
+                        this.updateSearchInfo(data);
+                    });
+                    
+                    this.socket.on('game_start', (gameState) => {
+                        this.gameState = gameState;
+                        this.showScreen('game-screen');
+                    });
+                    
+                    this.socket.on('game_state', (gameState) => {
+                        this.gameState = gameState;
+                    });
+                    
+                    this.socket.on('game_over', (results) => {
+                        alert(`Игра завершена! Победитель: ${results.winner} со счетом ${results.winner_score}`);
+                        this.showScreen('main-menu');
+                    });
+                    
+                    this.socket.on('join_success', (data) => {
+                        console.log('Успешно присоединились к комнате:', data.room_id);
+                    });
+                    
+                    this.socket.on('join_error', (data) => {
+                        alert('Ошибка: ' + data.message);
+                        this.showScreen('main-menu');
+                    });
+                    
+                    this.socket.on('leave_success', () => {
+                        console.log('Успешно покинули комнату');
+                    });
+                    
+                } catch (error) {
+                    console.error('Ошибка при подключении:', error);
+                    alert('Ошибка при подключении к серверу');
+                }
             }
             
             setupEventListeners() {
@@ -395,18 +429,24 @@
                 document.addEventListener('keyup', (e) => this.handleKeyUp(e));
                 
                 // Обработка кнопок меню (заглушки)
-                document.getElementById('shop-btn').addEventListener('click', () => alert('Магазин скоро будет доступен!'));
-                document.getElementById('quests-btn').addEventListener('click', () => alert('Квесты скоро будут доступны!'));
-                document.getElementById('battle-pass-btn').addEventListener('click', () => alert('Circle Pass скоро будет доступен!'));
-                document.getElementById('friends-btn').addEventListener('click', () => alert('Друзья скоро будут доступны!'));
-                document.getElementById('stats-btn').addEventListener('click', () => alert('Статистика скоро будет доступна!'));
+                const stubButtons = ['shop-btn', 'quests-btn', 'battle-pass-btn', 'friends-btn', 'stats-btn'];
+                stubButtons.forEach(btnId => {
+                    document.getElementById(btnId).addEventListener('click', () => {
+                        alert('Эта функция скоро будет доступна!');
+                    });
+                });
+                
+                // Обработка закрытия окна
+                window.addEventListener('beforeunload', () => {
+                    if (this.socket) {
+                        this.socket.disconnect();
+                    }
+                });
             }
             
             setupCanvas() {
                 this.canvas = document.getElementById('game-canvas');
                 this.ctx = this.canvas.getContext('2d');
-                
-                // Устанавливаем размер canvas
                 this.resizeCanvas();
                 window.addEventListener('resize', () => this.resizeCanvas());
             }
@@ -417,16 +457,33 @@
             }
             
             playGame() {
+                if (!this.isConnected) {
+                    alert('Нет подключения к серверу. Попробуйте перезагрузить страницу.');
+                    return;
+                }
+                
                 this.playerName = prompt('Введите ваше имя:', 'Игрок') || 'Игрок';
+                
+                if (this.playerName.trim() === '') {
+                    this.playerName = 'Игрок';
+                }
                 
                 // Отправляем запрос на поиск игры
                 this.socket.emit('join_game', { name: this.playerName });
                 this.showScreen('search-screen');
+                
+                // Сбрасываем таймер поиска
+                this.updateSearchInfo({
+                    players_count: 1,
+                    max_players: 6,
+                    time_left: 30
+                });
             }
             
             cancelSearch() {
-                // Отправляем запрос на отмену поиска
-                this.socket.emit('leave_room');
+                if (this.socket && this.isConnected) {
+                    this.socket.emit('leave_room');
+                }
                 this.showScreen('main-menu');
             }
             
@@ -434,18 +491,25 @@
                 document.querySelectorAll('.screen').forEach(screen => {
                     screen.classList.remove('active');
                 });
-                document.getElementById(screenName).classList.add('active');
-                this.currentScreen = screenName;
                 
-                // Запускаем игровой цикл, если перешли на игровой экран
-                if (screenName === 'game-screen') {
-                    this.gameLoop();
+                const targetScreen = document.getElementById(screenName);
+                if (targetScreen) {
+                    targetScreen.classList.add('active');
+                    this.currentScreen = screenName;
+                    
+                    // Запускаем игровой цикл, если перешли на игровой экран
+                    if (screenName === 'game-screen') {
+                        // Даем время на отрисовку перед запуском цикла
+                        setTimeout(() => this.gameLoop(), 100);
+                    }
                 }
             }
             
             updateSearchInfo(data) {
-                document.getElementById('player-count').textContent = 
-                    `Игроков: ${data.players_count || 1}/${data.max_players || 6}`;
+                if (data.players_count !== undefined) {
+                    document.getElementById('player-count').textContent = 
+                        `Игроков: ${data.players_count}/${data.max_players || 6}`;
+                }
                 
                 if (data.time_left !== undefined) {
                     document.getElementById('countdown-timer').textContent = 
@@ -453,8 +517,7 @@
                 }
                 
                 if (data.message) {
-                    const timerElement = document.getElementById('countdown-timer');
-                    timerElement.textContent = data.message;
+                    document.getElementById('countdown-timer').textContent = data.message;
                 }
             }
             
@@ -482,14 +545,18 @@
             }
             
             drawPlayer(player) {
+                if (!player.position) return;
+                
                 const scaleX = this.canvas.width / 800;
                 const scaleY = this.canvas.height / 600;
+                const scale = Math.min(scaleX, scaleY);
                 
                 const x = player.position[0] * scaleX;
                 const y = player.position[1] * scaleY;
-                const size = 30 * Math.min(scaleX, scaleY);
+                const size = 30 * scale;
                 
-                this.ctx.fillStyle = player.color;
+                // Рисуем шарик
+                this.ctx.fillStyle = player.color || '#FF0000';
                 this.ctx.beginPath();
                 this.ctx.arc(x, y, size, 0, Math.PI * 2);
                 this.ctx.fill();
@@ -503,12 +570,12 @@
                 
                 // Имя игрока
                 this.ctx.fillStyle = 'white';
-                this.ctx.font = '14px Arial';
+                this.ctx.font = `${14 * scale}px Arial`;
                 this.ctx.textAlign = 'center';
                 this.ctx.fillText(player.name, x, y - size - 10);
                 
                 // Счет игрока
-                this.ctx.fillText(`Score: ${player.score}`, x, y + size + 15);
+                this.ctx.fillText(`Счет: ${player.score || 0}`, x, y + size + 15);
             }
             
             updateGameUI() {
@@ -517,7 +584,7 @@
                 // Таймер игры
                 if (this.gameState.game_time !== undefined) {
                     const minutes = Math.floor(this.gameState.game_time / 60);
-                    const seconds = this.gameState.game_time % 60;
+                    const seconds = Math.floor(this.gameState.game_time % 60);
                     document.getElementById('game-timer').textContent = 
                         `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
                 }
@@ -528,14 +595,14 @@
                     playersList.innerHTML = '<h3>Игроки</h3>';
                     
                     // Сортируем игроков по счету (убывание)
-                    const sortedPlayers = Object.values(this.gameState.players).sort((a, b) => b.score - a.score);
+                    const sortedPlayers = Object.values(this.gameState.players).sort((a, b) => (b.score || 0) - (a.score || 0));
                     
                     sortedPlayers.forEach(player => {
                         const playerElement = document.createElement('div');
                         playerElement.className = 'player-item';
                         playerElement.innerHTML = `
-                            <span class="player-color" style="background-color: ${player.color}"></span>
-                            <span>${player.name}${player.is_bot ? ' (Бот)' : ''} - ${player.score}</span>
+                            <span class="player-color" style="background-color: ${player.color || '#FF0000'}"></span>
+                            <span>${player.name}${player.is_bot ? ' (Бот)' : ''} - ${player.score || 0}</span>
                         `;
                         playersList.appendChild(playerElement);
                     });
@@ -544,12 +611,17 @@
                 // Счет текущего игрока
                 if (this.gameState.players && this.gameState.players[this.playerId]) {
                     document.getElementById('score-display').textContent = 
-                        `Счет: ${this.gameState.players[this.playerId].score}`;
+                        `Счет: ${this.gameState.players[this.playerId].score || 0}`;
                 }
             }
             
             handleKeyDown(e) {
                 if (this.currentScreen !== 'game-screen') return;
+                
+                // Предотвращаем прокрутку страницы при использовании стрелок
+                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+                    e.preventDefault();
+                }
                 
                 const key = e.key.toLowerCase();
                 this.keys[key] = true;
@@ -563,30 +635,28 @@
             }
             
             handleMovement() {
-                if (!this.playerId || !this.gameState || !this.gameState.players[this.playerId]) return;
+                if (!this.playerId || !this.gameState || !this.gameState.players || !this.gameState.players[this.playerId]) return;
                 
                 const now = Date.now();
                 if (now - this.lastMoveTime < this.moveInterval) return;
                 
                 let moved = false;
-                const player = this.gameState.players[this.playerId];
-                const speed = 5;
                 let dx = 0, dy = 0;
                 
                 if (this.keys['w'] || this.keys['ц'] || this.keys['arrowup']) {
-                    dy = -speed;
+                    dy = -1;
                     moved = true;
                 }
                 if (this.keys['s'] || this.keys['ы'] || this.keys['arrowdown']) {
-                    dy = speed;
+                    dy = 1;
                     moved = true;
                 }
                 if (this.keys['a'] || this.keys['ф'] || this.keys['arrowleft']) {
-                    dx = -speed;
+                    dx = -1;
                     moved = true;
                 }
                 if (this.keys['d'] || this.keys['в'] || this.keys['arrowright']) {
-                    dx = speed;
+                    dx = 1;
                     moved = true;
                 }
                 
@@ -594,20 +664,8 @@
                     this.lastMoveTime = now;
                     
                     // Отправляем движение на сервер
-                    this.socket.emit('player_move', { 
-                        dx: dx,
-                        dy: dy
-                    });
+                    this.socket.emit('player_move', { dx, dy });
                 }
-            }
-            
-            getRandomColor() {
-                const letters = '0123456789ABCDEF';
-                let color = '#';
-                for (let i = 0; i < 6; i++) {
-                    color += letters[Math.floor(Math.random() * 16)];
-                }
-                return color;
             }
         }
 
