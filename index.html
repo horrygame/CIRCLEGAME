@@ -104,23 +104,37 @@
                 // Рисуем иконку и текст
                 if (this.icon && images[this.icon]) {
                     const iconSize = 80; // Увеличили размер иконки в 2 раза (было 40)
-                    const iconX = this.isCorner ? 
-                        this.x + this.width/2 - iconSize/2 : 
-                        this.x + 15;
-                    const iconY = this.isCorner ? 
-                        this.y + this.height/2 - iconSize/2 - 10 : // Скорректировали позицию
-                        this.y + this.height/2 - iconSize/2;
                     
-                    ctx.drawImage(images[this.icon], iconX, iconY, iconSize, iconSize);
-                    
-                    // Текст
-                    ctx.fillStyle = colors.text;
-                    ctx.font = 'bold 24px Arial';
-                    ctx.textAlign = 'center';
-                    const textY = this.isCorner ? this.y + this.height/2 + 30 : this.y + this.height/2 + 10;
-                    ctx.fillText(this.text, this.x + this.width/2, textY);
+                    if (this.isCorner) {
+                        // Для угловых кнопок центрируем содержимое
+                        const iconX = this.x + this.width/2 - iconSize/2;
+                        const iconY = this.y + this.height/2 - iconSize/2 - 10;
+                        
+                        ctx.drawImage(images[this.icon], iconX, iconY, iconSize, iconSize);
+                        
+                        // Текст
+                        ctx.fillStyle = colors.text;
+                        ctx.font = 'bold 24px Arial';
+                        ctx.textAlign = 'center';
+                        const textY = this.y + this.height/2 + 30;
+                        ctx.fillText(this.text, this.x + this.width/2, textY);
+                    } else {
+                        // Для обычных кнопок - иконка слева, текст справа
+                        const iconX = this.x + 15;
+                        const iconY = this.y + this.height/2 - iconSize/2;
+                        
+                        ctx.drawImage(images[this.icon], iconX, iconY, iconSize, iconSize);
+                        
+                        // Текст выравниваем по правому краю
+                        ctx.fillStyle = colors.text;
+                        ctx.font = 'bold 24px Arial';
+                        ctx.textAlign = 'right';
+                        const textX = this.x + this.width - 15;
+                        const textY = this.y + this.height/2 + 10;
+                        ctx.fillText(this.text, textX, textY);
+                    }
                 } else {
-                    // Только текст
+                    // Если нет иконки, просто центрируем текст
                     ctx.fillStyle = colors.text;
                     ctx.font = 'bold 24px Arial';
                     ctx.textAlign = 'center';
