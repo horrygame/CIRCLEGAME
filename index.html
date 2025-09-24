@@ -3,8 +3,20 @@
 <head>
     <title>Шарики Игра</title>
     <style>
-        body { margin: 0; padding: 0; background: #323250; }
-        canvas { display: block; margin: 0 auto; }
+        body { 
+            margin: 0; 
+            padding: 0; 
+            background: #323250; 
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        canvas { 
+            display: block; 
+            margin: 0 auto; 
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            image-rendering: pixelated;
+        }
     </style>
 </head>
 <body>
@@ -51,6 +63,12 @@
                         loaded++;
                         if (loaded === total) resolve();
                     };
+                    img.onerror = () => {
+                        // Если изображение не загрузилось, создаем заглушку
+                        console.warn(`Не удалось загрузить изображение: ${path}`);
+                        loaded++;
+                        if (loaded === total) resolve();
+                    };
                     img.src = path;
                     images[key] = img;
                 }
@@ -85,26 +103,26 @@
                 
                 // Рисуем иконку и текст
                 if (this.icon && images[this.icon]) {
-                    const iconSize = 40;
+                    const iconSize = 80; // Увеличили размер иконки в 2 раза (было 40)
                     const iconX = this.isCorner ? 
                         this.x + this.width/2 - iconSize/2 : 
                         this.x + 15;
                     const iconY = this.isCorner ? 
-                        this.y + this.height/2 - iconSize/2 - 15 : 
+                        this.y + this.height/2 - iconSize/2 - 10 : // Скорректировали позицию
                         this.y + this.height/2 - iconSize/2;
                     
                     ctx.drawImage(images[this.icon], iconX, iconY, iconSize, iconSize);
                     
                     // Текст
                     ctx.fillStyle = colors.text;
-                    ctx.font = '28px Arial';
+                    ctx.font = 'bold 24px Arial';
                     ctx.textAlign = 'center';
-                    const textY = this.isCorner ? this.y + this.height/2 + 25 : this.y + this.height/2 + 10;
+                    const textY = this.isCorner ? this.y + this.height/2 + 30 : this.y + this.height/2 + 10;
                     ctx.fillText(this.text, this.x + this.width/2, textY);
                 } else {
                     // Только текст
                     ctx.fillStyle = colors.text;
-                    ctx.font = '28px Arial';
+                    ctx.font = 'bold 24px Arial';
                     ctx.textAlign = 'center';
                     ctx.fillText(this.text, this.x + this.width/2, this.y + this.height/2 + 10);
                 }
@@ -130,8 +148,15 @@
             }
             
             lightenColor(color, percent) {
-                // Упрощенная функция для осветления цвета
-                return color; // В реальной реализации нужно преобразовать HEX в RGB и осветлить
+                // Функция для осветления цвета
+                const num = parseInt(color.replace("#", ""), 16);
+                const amt = Math.round(2.55 * percent);
+                const R = (num >> 16) + amt;
+                const G = (num >> 8 & 0x00FF) + amt;
+                const B = (num & 0x0000FF) + amt;
+                return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 +
+                             (G<255?G<1?0:G:255)*0x100 +
+                             (B<255?B<1?0:B:255)).toString(16).slice(1);
             }
             
             isPointInside(x, y) {
@@ -144,18 +169,19 @@
         let buttons = [];
         
         function createButtons() {
-            const cornerSize = canvas.width / 4;
-            const regularWidth = 180;
-            const regularHeight = 60;
+            const cornerWidth = canvas.width / 4;
+            const cornerHeight = canvas.height / 8; // Уменьшили высоту угловых кнопок в 2 раза
+            const regularWidth = 200; // Немного увеличили обычные кнопки
+            const regularHeight = 70;
             const margin = 20;
             
             buttons = [
-                new Button(0, 0, cornerSize, cornerSize, "Статистика", "statistics", true),
-                new Button(canvas.width - cornerSize, 0, cornerSize, cornerSize, "Магазин", "shop", true),
+                new Button(0, 0, cornerWidth, cornerHeight, "Статистика", "statistics", true),
+                new Button(canvas.width - cornerWidth, 0, cornerWidth, cornerHeight, "Магазин", "shop", true),
                 new Button(margin, canvas.height/2 - regularHeight/2, regularWidth, regularHeight, "Квесты", "quests"),
                 new Button(canvas.width - regularWidth - margin, canvas.height/2 - regularHeight/2, regularWidth, regularHeight, "Друзья", "friends"),
-                new Button(0, canvas.height - cornerSize, cornerSize, cornerSize, "Circle Pass", "battlePass", true, colors.circlePass),
-                new Button(canvas.width - cornerSize, canvas.height - cornerSize, cornerSize, cornerSize, "Играть", "play", true, colors.playButton)
+                new Button(0, canvas.height - cornerHeight, cornerWidth, cornerHeight, "Circle Pass", "battlePass", true, colors.circlePass),
+                new Button(canvas.width - cornerWidth, canvas.height - cornerHeight, cornerWidth, cornerHeight, "Играть", "play", true, colors.playButton)
             ];
         }
         
@@ -165,12 +191,22 @@
             ctx.fillStyle = colors.background;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Рисуем персонажа в центре
+            // Рисуем персонажа в центре с четким отображением
             if (images.character) {
-                const charSize = Math.min(canvas.width, canvas.height) / 4;
+                const charSize = Math.min(canvas.width, canvas.height) / 3; // Немного увеличили персонажа
                 const charX = canvas.width/2 - charSize/2;
                 const charY = canvas.height/2 - charSize/2;
+                
+                // Отключаем сглаживание для четкого отображения
+                ctx.imageSmoothingEnabled = false;
                 ctx.drawImage(images.character, charX, charY, charSize, charSize);
+                ctx.imageSmoothingEnabled = true; // Включаем обратно для остальных элементов
+            } else {
+                // Заглушка если изображение не загрузилось
+                ctx.fillStyle = '#FFD700';
+                ctx.beginPath();
+                ctx.arc(canvas.width/2, canvas.height/2, Math.min(canvas.width, canvas.height) / 6, 0, Math.PI * 2);
+                ctx.fill();
             }
             
             // Рисуем кнопки
@@ -188,6 +224,9 @@
             buttons.forEach(button => {
                 button.isHovered = button.isPointInside(x, y);
             });
+            
+            // Изменяем курсор при наведении на кнопку
+            canvas.style.cursor = buttons.some(button => button.isHovered) ? 'pointer' : 'default';
         });
         
         canvas.addEventListener('click', (e) => {
@@ -199,12 +238,17 @@
                 if (button.isPointInside(x, y)) {
                     console.log(`Нажата кнопка: ${button.text}`);
                     // Здесь можно добавить логику для каждой кнопки
+                    alert(`Нажата кнопка: ${button.text}`);
                 }
             });
         });
         
         // Запуск игры после загрузки изображений
         loadImages().then(() => {
+            createButtons();
+            gameLoop();
+        }).catch(error => {
+            console.error('Ошибка загрузки изображений:', error);
             createButtons();
             gameLoop();
         });
