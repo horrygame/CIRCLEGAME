@@ -1,277 +1,701 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>Шарики Игра</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Шарики - Мультиплеерная Игра</title>
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
     <style>
-        body { 
-            margin: 0; 
-            padding: 0; 
-            background: #323250; 
-            overflow: hidden;
-            font-family: Arial, sans-serif;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        canvas { 
-            display: block; 
-            margin: 0 auto; 
-            image-rendering: -webkit-optimize-contrast;
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #323250;
+            color: white;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* Главное меню */
+        .menu-background {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .character-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+        }
+
+        #main-character {
+            width: 200px;
+            height: 200px;
             image-rendering: crisp-edges;
-            image-rendering: pixelated;
+            background: #FFD700;
+            border-radius: 50%;
+        }
+
+        .menu-buttons {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .menu-btn {
+            position: absolute;
+            border: none;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .corner-btn {
+            width: 25vw;
+            height: 12.5vh;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .side-btn {
+            width: 180px;
+            height: 70px;
+            border-radius: 15px;
+            justify-content: flex-start;
+            padding-left: 15px;
+        }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 5px;
+        }
+
+        /* Угловые кнопки */
+        #play-btn {
+            bottom: 0;
+            right: 0;
+            background: #c34a3c;
+        }
+
+        #play-btn:hover {
+            background: #d45a4c;
+        }
+
+        #battle-pass-btn {
+            bottom: 0;
+            left: 0;
+            background: #e98216;
+        }
+
+        #battle-pass-btn:hover {
+            background: #f99226;
+        }
+
+        #stats-btn {
+            top: 0;
+            left: 0;
+            background: #4682b4;
+        }
+
+        #shop-btn {
+            top: 0;
+            right: 0;
+            background: #4682b4;
+        }
+
+        /* Боковые кнопки */
+        #quests-btn {
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+            background: #4682b4;
+        }
+
+        #friends-btn {
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: #4682b4;
+        }
+
+        /* Экран поиска */
+        #search-screen {
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .search-container {
+            text-align: center;
+            background: rgba(50, 50, 80, 0.9);
+            padding: 40px;
+            border-radius: 15px;
+            border: 2px solid #4682b4;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #4682b4;
+            border-top: 5px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .cancel-btn {
+            background: #c34a3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .cancel-btn:hover {
+            background: #d45a4c;
+        }
+
+        /* Игровой экран */
+        #game-screen {
+            background: #888;
+        }
+
+        #game-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #game-ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            pointer-events: none;
+        }
+
+        #game-timer {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        #players-list {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+            min-width: 150px;
+        }
+
+        #score-display {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 18px;
+        }
+
+        .player-item {
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .player-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            display: inline-block;
         }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
+    <!-- Главное меню -->
+    <div id="main-menu" class="screen active">
+        <div class="menu-background">
+            <div class="character-container">
+                <div id="main-character"></div>
+            </div>
+            
+            <div class="menu-buttons">
+                <button id="play-btn" class="menu-btn corner-btn play-btn">
+                    <div class="btn-icon"></div>
+                    <span>Играть</span>
+                </button>
+                
+                <button id="shop-btn" class="menu-btn corner-btn">
+                    <div class="btn-icon"></div>
+                    <span>Магазин</span>
+                </button>
+                
+                <button id="quests-btn" class="menu-btn side-btn">
+                    <div class="btn-icon"></div>
+                    <span>Квесты</span>
+                </button>
+                
+                <button id="battle-pass-btn" class="menu-btn corner-btn battle-pass-btn">
+                    <div class="btn-icon"></div>
+                    <span>Circle Pass</span>
+                </button>
+                
+                <button id="friends-btn" class="menu-btn side-btn">
+                    <div class="btn-icon"></div>
+                    <span>Друзья</span>
+                </button>
+                
+                <button id="stats-btn" class="menu-btn corner-btn">
+                    <div class="btn-icon"></div>
+                    <span>Статистика</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Экран поиска игры -->
+    <div id="search-screen" class="screen">
+        <div class="search-container">
+            <h2>Поиск игры</h2>
+            <div class="loading-spinner"></div>
+            <div id="player-count">Игроков: 1/6</div>
+            <div id="countdown-timer">Ожидание игроков: 30с</div>
+            <button id="cancel-search" class="cancel-btn">Отмена</button>
+        </div>
+    </div>
+
+    <!-- Игровой экран -->
+    <div id="game-screen" class="screen">
+        <canvas id="game-canvas"></canvas>
+        <div id="game-ui">
+            <div id="game-timer">02:30</div>
+            <div id="players-list"></div>
+            <div id="score-display">Счет: 0</div>
+        </div>
+    </div>
+
     <script>
-        // JavaScript код игры
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        // Установка размеров canvas
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        
-        // Основные переменные
-        const colors = {
-            background: '#323250',
-            playButton: '#c34a3c',
-            circlePass: '#e98216',
-            defaultButton: '#4682b4',
-            text: '#ffffff'
-        };
-        
-        // Загрузка изображений
-        const images = {};
-        const imagePaths = {
-            character: 'classic_guy.png',
-            battlePass: 'icon_battle_pass.png',
-            play: 'icon_play.png',
-            statistics: 'icon_statistics.png',
-            shop: 'icon_shop.png',
-            quests: 'icon_quests.png',
-            friends: 'icon_friends.png'
-        };
-        
-        // Функция загрузки изображений
-        function loadImages() {
-            return new Promise((resolve) => {
-                let loaded = 0;
-                const total = Object.keys(imagePaths).length;
+        class GameClient {
+            constructor() {
+                this.socket = null;
+                this.currentScreen = 'main-menu';
+                this.gameState = null;
+                this.canvas = null;
+                this.ctx = null;
+                this.keys = {};
+                this.playerId = null;
+                this.lastMoveTime = 0;
+                this.moveInterval = 50; // Минимальное время между отправками движения (мс)
                 
-                for (const [key, path] of Object.entries(imagePaths)) {
-                    const img = new Image();
-                    img.onload = () => {
-                        loaded++;
-                        if (loaded === total) resolve();
-                    };
-                    img.onerror = () => {
-                        // Если изображение не загрузилось, создаем заглушку
-                        console.warn(`Не удалось загрузить изображение: ${path}`);
-                        loaded++;
-                        if (loaded === total) resolve();
-                    };
-                    img.src = path;
-                    images[key] = img;
-                }
-            });
-        }
-        
-        // Класс кнопки
-        class Button {
-            constructor(x, y, width, height, text, icon, isCorner = false, color = colors.defaultButton) {
-                this.x = x;
-                this.y = y;
-                this.width = width;
-                this.height = height;
-                this.text = text;
-                this.icon = icon;
-                this.isCorner = isCorner;
-                this.color = color;
-                this.isHovered = false;
+                this.init();
             }
             
-            draw() {
-                // Рисуем кнопку
-                ctx.fillStyle = this.isHovered ? this.lightenColor(this.color, 20) : this.color;
-                if (this.isCorner) {
-                    ctx.fillRect(this.x, this.y, this.width, this.height);
-                    ctx.strokeStyle = colors.text;
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(this.x, this.y, this.width, this.height);
-                } else {
-                    this.roundRect(this.x, this.y, this.width, this.height, 15);
-                }
+            init() {
+                this.setupEventListeners();
+                this.connectToServer();
+                this.setupCanvas();
+            }
+            
+            setupEventListeners() {
+                // Кнопки меню
+                document.getElementById('play-btn').addEventListener('click', () => this.playGame());
+                document.getElementById('cancel-search').addEventListener('click', () => this.cancelSearch());
                 
-                // Рисуем иконку и текст
-                if (this.icon && images[this.icon]) {
-                    const iconSize = 80; // Увеличили размер иконки в 2 раза (было 40)
+                // Обработка клавиш
+                document.addEventListener('keydown', (e) => this.handleKeyDown(e));
+                document.addEventListener('keyup', (e) => this.handleKeyUp(e));
+                
+                // Обработка кнопок меню (заглушки)
+                document.getElementById('shop-btn').addEventListener('click', () => alert('Магазин скоро будет доступен!'));
+                document.getElementById('quests-btn').addEventListener('click', () => alert('Квесты скоро будут доступны!'));
+                document.getElementById('battle-pass-btn').addEventListener('click', () => alert('Circle Pass скоро будет доступен!'));
+                document.getElementById('friends-btn').addEventListener('click', () => alert('Друзья скоро будут доступны!'));
+                document.getElementById('stats-btn').addEventListener('click', () => alert('Статистика скоро будет доступна!'));
+            }
+            
+            connectToServer() {
+                // Подключаемся к серверу (эмуляция, так как сервера нет)
+                console.log('Эмуляция подключения к серверу...');
+                
+                // Эмуляция ответов сервера с задержкой
+                setTimeout(() => {
+                    this.playerId = 'player_' + Math.floor(Math.random() * 1000);
+                    console.log('Connected to server. Player ID:', this.playerId);
                     
-                    if (this.isCorner) {
-                        // Для угловых кнопок центрируем содержимое
-                        const iconX = this.x + this.width/2 - iconSize/2;
-                        const iconY = this.y + this.height/2 - iconSize/2 - 10;
+                    // Эмуляция получения данных о комнате
+                    setTimeout(() => {
+                        this.showScreen('search-screen');
+                        this.updateSearchInfo({
+                            players_count: 1,
+                            max_players: 6,
+                            time_left: 30
+                        });
                         
-                        ctx.drawImage(images[this.icon], iconX, iconY, iconSize, iconSize);
+                        // Эмуляция присоединения других игроков
+                        this.simulateOtherPlayers();
                         
-                        // Текст
-                        ctx.fillStyle = colors.text;
-                        ctx.font = 'bold 18px Arial';
-                        ctx.textAlign = 'center';
-                        const textY = this.y + this.height/2 + 30;
-                        ctx.fillText(this.text, this.x + this.width/2, textY);
-                    } else {
-                        // Для обычных кнопок - иконка слева, текст справа
-                        const iconX = this.x + 15;
-                        const iconY = this.y + this.height/2 - iconSize/2;
-                        
-                        ctx.drawImage(images[this.icon], iconX, iconY, iconSize, iconSize);
-                        
-                        // Текст выравниваем по правому краю
-                        ctx.fillStyle = colors.text;
-                        ctx.font = 'bold 18px Arial';
-                        ctx.textAlign = 'right';
-                        const textX = this.x + this.width - 15;
-                        const textY = this.y + this.height/2 + 10;
-                        ctx.fillText(this.text, textX, textY);
+                    }, 1000);
+                    
+                }, 500);
+            }
+            
+            simulateOtherPlayers() {
+                // Эмуляция присоединения других игроков
+                let playersCount = 1;
+                const maxPlayers = 6;
+                let timeLeft = 30;
+                
+                const interval = setInterval(() => {
+                    timeLeft--;
+                    
+                    // Случайное присоединение игроков
+                    if (playersCount < maxPlayers && Math.random() < 0.3) {
+                        playersCount++;
                     }
-                } else {
-                    // Если нет иконки, просто центрируем текст
-                    ctx.fillStyle = colors.text;
-                    ctx.font = 'bold 24px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(this.text, this.x + this.width/2, this.y + this.height/2 + 10);
+                    
+                    this.updateSearchInfo({
+                        players_count: playersCount,
+                        max_players: maxPlayers,
+                        time_left: timeLeft
+                    });
+                    
+                    // Запуск игры при заполнении комнаты или истечении времени
+                    if (playersCount >= maxPlayers || timeLeft <= 0) {
+                        clearInterval(interval);
+                        
+                        // Добавляем ботов, если нужно
+                        const botsNeeded = maxPlayers - playersCount;
+                        if (botsNeeded > 0) {
+                            this.updateSearchInfo({
+                                players_count: maxPlayers,
+                                max_players: maxPlayers,
+                                time_left: 0,
+                                message: `Добавляем ${botsNeeded} ботов...`
+                            });
+                        }
+                        
+                        // Запускаем игру через 2 секунды
+                        setTimeout(() => {
+                            this.startGame();
+                        }, 2000);
+                    }
+                }, 1000);
+            }
+            
+            setupCanvas() {
+                this.canvas = document.getElementById('game-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                
+                // Устанавливаем размер canvas
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+            }
+            
+            resizeCanvas() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+            
+            playGame() {
+                const playerName = prompt('Введите ваше имя:', 'Игрок') || 'Игрок';
+                // В реальном приложении здесь будет отправка на сервер
+                console.log('Запрос на поиск игры для:', playerName);
+            }
+            
+            cancelSearch() {
+                // В реальном приложении здесь будет отключение от сервера
+                this.showScreen('main-menu');
+                location.reload(); // Простой способ сброса состояния
+            }
+            
+            showScreen(screenName) {
+                document.querySelectorAll('.screen').forEach(screen => {
+                    screen.classList.remove('active');
+                });
+                document.getElementById(screenName).classList.add('active');
+                this.currentScreen = screenName;
+                
+                // Запускаем игровой цикл, если перешли на игровой экран
+                if (screenName === 'game-screen') {
+                    this.gameLoop();
                 }
             }
             
-            roundRect(x, y, width, height, radius) {
-                ctx.beginPath();
-                ctx.moveTo(x + radius, y);
-                ctx.lineTo(x + width - radius, y);
-                ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-                ctx.lineTo(x + width, y + height - radius);
-                ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-                ctx.lineTo(x + radius, y + height);
-                ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-                ctx.lineTo(x, y + radius);
-                ctx.quadraticCurveTo(x, y, x + radius, y);
-                ctx.closePath();
-                ctx.fill();
+            updateSearchInfo(data) {
+                document.getElementById('player-count').textContent = 
+                    `Игроков: ${data.players_count || 1}/${data.max_players || 6}`;
                 
-                ctx.strokeStyle = colors.text;
-                ctx.lineWidth = 2;
-                ctx.stroke();
-            }
-            
-            lightenColor(color, percent) {
-                // Функция для осветления цвета
-                const num = parseInt(color.replace("#", ""), 16);
-                const amt = Math.round(2.55 * percent);
-                const R = (num >> 16) + amt;
-                const G = (num >> 8 & 0x00FF) + amt;
-                const B = (num & 0x0000FF) + amt;
-                return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 +
-                             (G<255?G<1?0:G:255)*0x100 +
-                             (B<255?B<1?0:B:255)).toString(16).slice(1);
-            }
-            
-            isPointInside(x, y) {
-                return x >= this.x && x <= this.x + this.width && 
-                       y >= this.y && y <= this.y + this.height;
-            }
-        }
-        
-        // Создание кнопок
-        let buttons = [];
-        
-        function createButtons() {
-            const cornerWidth = canvas.width / 4;
-            const cornerHeight = canvas.height / 8; // Уменьшили высоту угловых кнопок в 2 раза
-            const regularWidth = 200; // Немного увеличили обычные кнопки
-            const regularHeight = 70;
-            const margin = 20;
-            
-            buttons = [
-                new Button(0, 0, cornerWidth, cornerHeight, "Статистика", "statistics", true),
-                new Button(canvas.width - cornerWidth, 0, cornerWidth, cornerHeight, "Магазин", "shop", true),
-                new Button(margin, canvas.height/2 - regularHeight/2, regularWidth, regularHeight, "Квесты", "quests"),
-                new Button(canvas.width - regularWidth - margin, canvas.height/2 - regularHeight/2, regularWidth, regularHeight, "Друзья", "friends"),
-                new Button(0, canvas.height - cornerHeight, cornerWidth, cornerHeight, "Circle Pass", "battlePass", true, colors.circlePass),
-                new Button(canvas.width - cornerWidth, canvas.height - cornerHeight, cornerWidth, cornerHeight, "Играть", "play", true, colors.playButton)
-            ];
-        }
-        
-        // Основной игровой цикл
-        function gameLoop() {
-            // Очистка canvas
-            ctx.fillStyle = colors.background;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Рисуем персонажа в центре с четким отображением
-            if (images.character) {
-                const charSize = Math.min(canvas.width, canvas.height) / 3; // Немного увеличили персонажа
-                const charX = canvas.width/2 - charSize/2;
-                const charY = canvas.height/2 - charSize/2;
-                
-                // Отключаем сглаживание для четкого отображения
-                ctx.imageSmoothingEnabled = false;
-                ctx.drawImage(images.character, charX, charY, charSize, charSize);
-                ctx.imageSmoothingEnabled = true; // Включаем обратно для остальных элементов
-            } else {
-                // Заглушка если изображение не загрузилось
-                ctx.fillStyle = '#FFD700';
-                ctx.beginPath();
-                ctx.arc(canvas.width/2, canvas.height/2, Math.min(canvas.width, canvas.height) / 6, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            
-            // Рисуем кнопки
-            buttons.forEach(button => button.draw());
-            
-            requestAnimationFrame(gameLoop);
-        }
-        
-        // Обработка событий
-        canvas.addEventListener('mousemove', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            buttons.forEach(button => {
-                button.isHovered = button.isPointInside(x, y);
-            });
-            
-            // Изменяем курсор при наведении на кнопку
-            canvas.style.cursor = buttons.some(button => button.isHovered) ? 'pointer' : 'default';
-        });
-        
-        canvas.addEventListener('click', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            buttons.forEach(button => {
-                if (button.isPointInside(x, y)) {
-                    console.log(`Нажата кнопка: ${button.text}`);
-                    // Здесь можно добавить логику для каждой кнопки
-                    alert(`Нажата кнопка: ${button.text}`);
+                if (data.time_left !== undefined) {
+                    document.getElementById('countdown-timer').textContent = 
+                        `Ожидание игроков: ${data.time_left}с`;
                 }
-            });
-        });
-        
-        // Запуск игры после загрузки изображений
-        loadImages().then(() => {
-            createButtons();
-            gameLoop();
-        }).catch(error => {
-            console.error('Ошибка загрузки изображений:', error);
-            createButtons();
-            gameLoop();
-        });
-        
-        // Обработка изменения размера окна
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            createButtons();
+                
+                if (data.message) {
+                    const timerElement = document.getElementById('countdown-timer');
+                    timerElement.textContent = data.message;
+                }
+            }
+            
+            startGame() {
+                // Создаем начальное состояние игры
+                this.gameState = {
+                    players: {},
+                    game_time: 150, // 2.5 минуты
+                    status: 'playing'
+                };
+                
+                // Добавляем текущего игрока
+                this.gameState.players[this.playerId] = {
+                    id: this.playerId,
+                    name: 'Вы',
+                    position: [400, 300],
+                    color: this.getRandomColor(),
+                    score: 0,
+                    is_bot: false
+                };
+                
+                // Добавляем ботов и других игроков
+                for (let i = 1; i <= 5; i++) {
+                    const botId = `bot_${i}`;
+                    this.gameState.players[botId] = {
+                        id: botId,
+                        name: `Бот_${i}`,
+                        position: [100 + i * 100, 100 + i * 50],
+                        color: this.getRandomColor(),
+                        score: 0,
+                        is_bot: true
+                    };
+                }
+                
+                this.showScreen('game-screen');
+            }
+            
+            gameLoop() {
+                if (this.currentScreen !== 'game-screen') return;
+                
+                // Очищаем canvas
+                this.ctx.fillStyle = '#888';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Рисуем игроков
+                if (this.gameState && this.gameState.players) {
+                    Object.values(this.gameState.players).forEach(player => {
+                        this.drawPlayer(player);
+                    });
+                }
+                
+                // Обновляем UI
+                this.updateGameUI();
+                
+                // Обрабатываем движение
+                this.handleMovement();
+                
+                // Двигаем ботов
+                this.moveBots();
+                
+                requestAnimationFrame(() => this.gameLoop());
+            }
+            
+            drawPlayer(player) {
+                const scaleX = this.canvas.width / 800;
+                const scaleY = this.canvas.height / 600;
+                
+                const x = player.position[0] * scaleX;
+                const y = player.position[1] * scaleY;
+                const size = 30 * Math.min(scaleX, scaleY);
+                
+                this.ctx.fillStyle = player.color;
+                this.ctx.beginPath();
+                this.ctx.arc(x, y, size, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // Обводка для выделения игрока
+                if (player.id === this.playerId) {
+                    this.ctx.strokeStyle = 'white';
+                    this.ctx.lineWidth = 3;
+                    this.ctx.stroke();
+                }
+                
+                // Имя игрока
+                this.ctx.fillStyle = 'white';
+                this.ctx.font = '14px Arial';
+                this.ctx.textAlign = 'center';
+                this.ctx.fillText(player.name, x, y - size - 10);
+            }
+            
+            updateGameUI() {
+                if (!this.gameState) return;
+                
+                // Таймер игры
+                if (this.gameState.game_time !== undefined) {
+                    const minutes = Math.floor(this.gameState.game_time / 60);
+                    const seconds = this.gameState.game_time % 60;
+                    document.getElementById('game-timer').textContent = 
+                        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    
+                    // Уменьшаем время
+                    this.gameState.game_time -= 0.016; // Примерно 60 FPS
+                    
+                    // Завершаем игру при истечении времени
+                    if (this.gameState.game_time <= 0) {
+                        this.endGame();
+                    }
+                }
+                
+                // Список игроков
+                const playersList = document.getElementById('players-list');
+                if (this.gameState.players) {
+                    playersList.innerHTML = '<h3>Игроки</h3>';
+                    Object.values(this.gameState.players).forEach(player => {
+                        const playerElement = document.createElement('div');
+                        playerElement.className = 'player-item';
+                        playerElement.innerHTML = `
+                            <span class="player-color" style="background-color: ${player.color}"></span>
+                            <span>${player.name}${player.is_bot ? ' (Бот)' : ''}</span>
+                        `;
+                        playersList.appendChild(playerElement);
+                    });
+                }
+            }
+            
+            handleKeyDown(e) {
+                if (this.currentScreen !== 'game-screen') return;
+                
+                const key = e.key.toLowerCase();
+                this.keys[key] = true;
+            }
+            
+            handleKeyUp(e) {
+                if (this.currentScreen !== 'game-screen') return;
+                
+                const key = e.key.toLowerCase();
+                this.keys[key] = false;
+            }
+            
+            handleMovement() {
+                if (!this.playerId || !this.gameState || !this.gameState.players[this.playerId]) return;
+                
+                const now = Date.now();
+                if (now - this.lastMoveTime < this.moveInterval) return;
+                
+                let moved = false;
+                const player = this.gameState.players[this.playerId];
+                const speed = 5;
+                
+                if (this.keys['w'] || this.keys['ц'] || this.keys['arrowup']) {
+                    player.position[1] = Math.max(0, player.position[1] - speed);
+                    moved = true;
+                }
+                if (this.keys['s'] || this.keys['ы'] || this.keys['arrowdown']) {
+                    player.position[1] = Math.min(600, player.position[1] + speed);
+                    moved = true;
+                }
+                if (this.keys['a'] || this.keys['ф'] || this.keys['arrowleft']) {
+                    player.position[0] = Math.max(0, player.position[0] - speed);
+                    moved = true;
+                }
+                if (this.keys['d'] || this.keys['в'] || this.keys['arrowright']) {
+                    player.position[0] = Math.min(800, player.position[0] + speed);
+                    moved = true;
+                }
+                
+                if (moved) {
+                    this.lastMoveTime = now;
+                    
+                    // В реальном приложении здесь будет отправка на сервер
+                    // this.socket.emit('player_move', { 
+                    //     x: player.position[0], 
+                    //     y: player.position[1] 
+                    // });
+                }
+            }
+            
+            moveBots() {
+                if (!this.gameState || !this.gameState.players) return;
+                
+                Object.values(this.gameState.players).forEach(player => {
+                    if (player.is_bot && Math.random() < 0.02) {
+                        // Случайное движение ботов
+                        const directions = [
+                            [0, -3], [0, 3], [-3, 0], [3, 0] // up, down, left, right
+                        ];
+                        const direction = directions[Math.floor(Math.random() * directions.length)];
+                        
+                        player.position[0] = Math.max(0, Math.min(800, player.position[0] + direction[0]));
+                        player.position[1] = Math.max(0, Math.min(600, player.position[1] + direction[1]));
+                    }
+                });
+            }
+            
+            endGame() {
+                alert('Игра завершена! Победитель: ' + 
+                    (this.gameState.players[this.playerId].name || 'Неизвестно'));
+                this.showScreen('main-menu');
+                location.reload();
+            }
+            
+            getRandomColor() {
+                const letters = '0123456789ABCDEF';
+                let color = '#';
+                for (let i = 0; i < 6; i++) {
+                    color += letters[Math.floor(Math.random() * 16)];
+                }
+                return color;
+            }
+        }
+
+        // Запускаем игру когда страница загружена
+        document.addEventListener('DOMContentLoaded', () => {
+            new GameClient();
         });
     </script>
 </body>
