@@ -36,7 +36,6 @@
             align-items: center;
         }
 
-        /* Главное меню */
         #main-menu.active {
             display: block;
         }
@@ -45,6 +44,7 @@
             position: relative;
             width: 100%;
             height: 100%;
+            background: linear-gradient(45deg, #323250, #2a2a48, #323250);
         }
 
         .character-container {
@@ -53,14 +53,23 @@
             left: 50%;
             transform: translate(-50%, -50%);
             z-index: 1;
+            text-align: center;
         }
 
         #main-character {
             width: 200px;
             height: 200px;
-            background: #FFD700;
             border-radius: 50%;
             box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            object-fit: cover;
+            border: 4px solid #FFD700;
+        }
+
+        .character-container h2 {
+            margin-top: 20px;
+            font-size: 24px;
+            color: #FFD700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
         }
 
         .menu-buttons {
@@ -78,14 +87,19 @@
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
             transition: all 0.3s ease;
-            border-radius: 10px;
+            border-radius: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
         }
 
         .menu-btn:hover {
             transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.15);
         }
 
         .corner-btn {
@@ -93,68 +107,85 @@
             height: 12.5vh;
             justify-content: center;
             flex-direction: column;
+            text-align: center;
         }
 
         .side-btn {
-            width: 180px;
-            height: 70px;
+            width: 200px;
+            height: 80px;
             justify-content: flex-start;
-            padding-left: 15px;
+            padding: 15px;
         }
 
         .btn-icon {
             width: 40px;
             height: 40px;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 5px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
         }
 
         /* Угловые кнопки */
         #play-btn {
-            bottom: 0;
-            right: 0;
-            background: #c34a3c;
+            bottom: 40px;
+            right: 40px;
+            background: linear-gradient(135deg, #c34a3c, #d45a4c);
         }
 
         #play-btn:hover {
-            background: #d45a4c;
+            background: linear-gradient(135deg, #d45a4c, #e56a5c);
         }
 
         #battle-pass-btn {
-            bottom: 0;
-            left: 0;
-            background: #e98216;
+            bottom: 40px;
+            left: 40px;
+            background: linear-gradient(135deg, #e98216, #f99226);
         }
 
         #battle-pass-btn:hover {
-            background: #f99226;
+            background: linear-gradient(135deg, #f99226, #ffa236);
         }
 
         #stats-btn {
-            top: 0;
-            left: 0;
-            background: #4682b4;
+            top: 40px;
+            left: 40px;
+            background: linear-gradient(135deg, #4682b4, #5a96d6);
+        }
+
+        #stats-btn:hover {
+            background: linear-gradient(135deg, #5a96d6, #6ea6e6);
         }
 
         #shop-btn {
-            top: 0;
-            right: 0;
-            background: #4682b4;
+            top: 40px;
+            right: 40px;
+            background: linear-gradient(135deg, #4682b4, #5a96d6);
+        }
+
+        #shop-btn:hover {
+            background: linear-gradient(135deg, #5a96d6, #6ea6e6);
         }
 
         /* Боковые кнопки */
         #quests-btn {
             top: 50%;
-            left: 20px;
+            left: 40px;
             transform: translateY(-50%);
-            background: #4682b4;
+            background: linear-gradient(135deg, #4682b4, #5a96d6);
+        }
+
+        #quests-btn:hover {
+            background: linear-gradient(135deg, #5a96d6, #6ea6e6);
         }
 
         #friends-btn {
             top: 50%;
-            right: 20px;
+            right: 40px;
             transform: translateY(-50%);
-            background: #4682b4;
+            background: linear-gradient(135deg, #4682b4, #5a96d6);
+        }
+
+        #friends-btn:hover {
+            background: linear-gradient(135deg, #5a96d6, #6ea6e6);
         }
 
         /* Экран поиска игры */
@@ -167,21 +198,28 @@
         .search-container {
             text-align: center;
             background: rgba(50, 50, 80, 0.95);
-            padding: 40px;
-            border-radius: 15px;
-            border: 2px solid #4682b4;
+            padding: 50px;
+            border-radius: 20px;
+            border: 3px solid #4682b4;
             box-shadow: 0 0 50px rgba(70, 130, 180, 0.5);
-            min-width: 300px;
+            min-width: 350px;
+            backdrop-filter: blur(10px);
+        }
+
+        .search-container h2 {
+            margin-bottom: 20px;
+            font-size: 28px;
+            color: #FFD700;
         }
 
         .loading-spinner {
-            width: 50px;
-            height: 50px;
+            width: 60px;
+            height: 60px;
             border: 5px solid #4682b4;
             border-top: 5px solid transparent;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 20px auto;
+            margin: 25px auto;
         }
 
         @keyframes spin {
@@ -190,20 +228,21 @@
         }
 
         .cancel-btn {
-            background: #c34a3c;
+            background: linear-gradient(135deg, #c34a3c, #d45a4c);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 5px;
+            padding: 15px 30px;
+            border-radius: 8px;
             cursor: pointer;
-            margin-top: 20px;
-            font-size: 16px;
+            margin-top: 25px;
+            font-size: 18px;
             font-weight: bold;
-            transition: background 0.3s;
+            transition: all 0.3s;
         }
 
         .cancel-btn:hover {
-            background: #d45a4c;
+            background: linear-gradient(135deg, #d45a4c, #e56a5c);
+            transform: scale(1.05);
         }
 
         /* Игровой экран */
@@ -229,111 +268,140 @@
         }
 
         #game-timer {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: bold;
             text-align: center;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px 30px;
-            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px 40px;
+            border-radius: 15px;
             display: inline-block;
             margin: 0 auto;
-            border: 2px solid #4682b4;
+            border: 3px solid #4682b4;
+            color: #FFD700;
         }
 
         #players-list {
             position: absolute;
             top: 20px;
             right: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px;
-            border-radius: 10px;
-            min-width: 200px;
-            border: 2px solid #4682b4;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            min-width: 220px;
+            border: 3px solid #4682b4;
+        }
+
+        #players-list h3 {
+            color: #FFD700;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 20px;
         }
 
         #score-display {
             position: absolute;
             bottom: 20px;
             left: 20px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 24px;
             font-weight: bold;
-            border: 2px solid #4682b4;
+            border: 3px solid #4682b4;
+            color: #FFD700;
         }
 
         .player-item {
-            margin: 8px 0;
+            margin: 10px 0;
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 14px;
+            gap: 12px;
+            font-size: 16px;
+            padding: 5px;
         }
 
         .player-color {
-            width: 15px;
-            height: 15px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             display: inline-block;
-            border: 1px solid white;
+            border: 2px solid white;
         }
 
         .connection-status {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            background: rgba(0, 0, 0, 0.5);
+            top: 15px;
+            left: 15px;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1001;
         }
 
-        .connected { background: #4CAF50; }
-        .disconnected { background: #f44336; }
+        .connected { 
+            background: rgba(76, 175, 80, 0.9);
+            color: white;
+        }
+        .disconnected { 
+            background: rgba(244, 67, 54, 0.9);
+            color: white;
+        }
+        .connecting { 
+            background: rgba(255, 193, 7, 0.9);
+            color: black;
+        }
+
+        .search-info {
+            font-size: 18px;
+            margin: 10px 0;
+            color: #FFD700;
+        }
     </style>
 </head>
 <body>
     <!-- Статус подключения -->
-    <div id="connection-status" class="connection-status disconnected">
-        Подключение...
+    <div id="connection-status" class="connection-status connecting">
+        🔄 Подключение...
     </div>
 
     <!-- Главное меню -->
     <div id="main-menu" class="screen active">
         <div class="menu-background">
             <div class="character-container">
-                <div id="main-character"></div>
+                <img id="main-character" src="classic_guy.png" alt="Главный персонаж">
+                <h2>Шарики</h2>
             </div>
             
             <div class="menu-buttons">
                 <button id="play-btn" class="menu-btn corner-btn">
-                    <div class="btn-icon"></div>
+                    <img src="icon_play.png" class="btn-icon" alt="Играть">
                     <span>Играть</span>
                 </button>
                 
                 <button id="shop-btn" class="menu-btn corner-btn">
-                    <div class="btn-icon"></div>
+                    <img src="icon_shop.png" class="btn-icon" alt="Магазин">
                     <span>Магазин</span>
                 </button>
                 
                 <button id="quests-btn" class="menu-btn side-btn">
-                    <div class="btn-icon"></div>
+                    <img src="icon_quests.png" class="btn-icon" alt="Квесты">
                     <span>Квесты</span>
                 </button>
                 
                 <button id="battle-pass-btn" class="menu-btn corner-btn">
-                    <div class="btn-icon"></div>
+                    <img src="icon_battle_pass.png" class="btn-icon" alt="Circle Pass">
                     <span>Circle Pass</span>
                 </button>
                 
                 <button id="friends-btn" class="menu-btn side-btn">
-                    <div class="btn-icon"></div>
+                    <img src="icon_friends.png" class="btn-icon" alt="Друзья">
                     <span>Друзья</span>
                 </button>
                 
                 <button id="stats-btn" class="menu-btn corner-btn">
-                    <div class="btn-icon"></div>
+                    <img src="icon_statistics.png" class="btn-icon" alt="Статистика">
                     <span>Статистика</span>
                 </button>
             </div>
@@ -345,10 +413,10 @@
         <div class="search-container">
             <h2>🔍 Поиск игры</h2>
             <div class="loading-spinner"></div>
-            <div id="player-count">Игроков: 0/6</div>
-            <div id="countdown-timer">Ожидание игроков: 30с</div>
-            <div id="search-message" style="margin: 10px 0; min-height: 20px;"></div>
-            <button id="cancel-search" class="cancel-btn">❌ Отмена</button>
+            <div id="player-count" class="search-info">Игроков: 1/6</div>
+            <div id="countdown-timer" class="search-info">Ожидание игроков: 30с</div>
+            <div id="search-message" class="search-info"></div>
+            <button id="cancel-search" class="cancel-btn">❌ Отмена поиска</button>
         </div>
     </div>
 
@@ -359,7 +427,9 @@
             <div style="width: 100%; text-align: center;">
                 <div id="game-timer">02:30</div>
             </div>
-            <div id="players-list"></div>
+            <div id="players-list">
+                <h3>🏆 Игроки</h3>
+            </div>
             <div id="score-display">Счет: 0</div>
         </div>
     </div>
@@ -380,6 +450,8 @@
                 this.moveInterval = 50;
                 this.isConnected = false;
                 this.gameLoopRunning = false;
+                this.reconnectAttempts = 0;
+                this.maxReconnectAttempts = 5;
                 
                 this.init();
             }
@@ -388,42 +460,78 @@
                 this.setupEventListeners();
                 this.connectToServer();
                 this.setupCanvas();
-                this.updateConnectionStatus();
+                this.updateConnectionStatus('connecting');
             }
             
             connectToServer() {
                 try {
-                    console.log('Подключаемся к серверу...');
+                    console.log('🔄 Подключаемся к серверу...');
+                    
                     this.socket = io('https://server-of-circule.onrender.com', {
-                        transports: ['websocket'],
-                        timeout: 10000
+                        transports: ['websocket', 'polling'],
+                        timeout: 10000,
+                        reconnection: true,
+                        reconnectionAttempts: this.maxReconnectAttempts,
+                        reconnectionDelay: 1000,
+                        reconnectionDelayMax: 5000
                     });
                     
                     this.socket.on('connect', () => {
                         console.log('✅ Подключено к серверу');
                         this.isConnected = true;
                         this.playerId = this.socket.id;
-                        this.updateConnectionStatus();
+                        this.reconnectAttempts = 0;
+                        this.updateConnectionStatus('connected');
                     });
                     
                     this.socket.on('disconnect', (reason) => {
                         console.log('❌ Отключено от сервера:', reason);
                         this.isConnected = false;
-                        this.updateConnectionStatus();
+                        this.updateConnectionStatus('disconnected');
                         
-                        if (this.currentScreen !== 'main-menu') {
-                            alert('Соединение с сервером потеряно');
-                            this.showScreen('main-menu');
+                        if (reason === 'io server disconnect') {
+                            this.socket.connect();
+                        }
+                        
+                        if (this.currentScreen !== 'main-menu' && reason !== 'io client disconnect') {
+                            setTimeout(() => {
+                                if (!this.isConnected) {
+                                    alert('Соединение с сервером потеряно. Возврат в главное меню.');
+                                    this.showScreen('main-menu');
+                                }
+                            }, 2000);
                         }
                     });
                     
                     this.socket.on('connect_error', (error) => {
                         console.error('Ошибка подключения:', error);
                         this.isConnected = false;
-                        this.updateConnectionStatus();
+                        this.reconnectAttempts++;
+                        this.updateConnectionStatus('connecting');
+                        
+                        if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+                            alert('Не удалось подключиться к серверу. Проверьте, запущен ли сервер.');
+                        }
                     });
                     
-                    // Обработчики игровых событий
+                    this.socket.on('reconnect', (attemptNumber) => {
+                        console.log(`✅ Переподключено (попытка ${attemptNumber})`);
+                        this.isConnected = true;
+                        this.updateConnectionStatus('connected');
+                    });
+                    
+                    this.socket.on('reconnect_attempt', (attemptNumber) => {
+                        console.log(`🔄 Попытка переподключения ${attemptNumber}`);
+                        this.updateConnectionStatus('connecting');
+                    });
+                    
+                    this.socket.on('reconnect_failed', () => {
+                        console.error('❌ Не удалось переподключиться');
+                        this.isConnected = false;
+                        this.updateConnectionStatus('disconnected');
+                    });
+                    
+                    // Игровые события
                     this.socket.on('join_success', (data) => {
                         console.log('✅ Успешно присоединились к комнате:', data.room_id);
                         this.roomId = data.room_id;
@@ -434,7 +542,7 @@
                     });
                     
                     this.socket.on('game_start', (data) => {
-                        console.log('🎮 Игра начинается!', data);
+                        console.log('🎮 Игра начинается!');
                         this.gameState = data.game_state;
                         this.showScreen('game-screen');
                     });
@@ -446,7 +554,7 @@
                     this.socket.on('game_over', (results) => {
                         console.log('🏁 Игра завершена:', results);
                         const winnerText = `Победитель: ${results.winner_name} со счетом ${results.winner_score}`;
-                        alert(`Игра завершена!\n${winnerText}`);
+                        alert(`🎉 Игра завершена!\n${winnerText}`);
                         this.showScreen('main-menu');
                     });
                     
@@ -455,8 +563,11 @@
                     });
                     
                     this.socket.on('error', (data) => {
+                        console.error('Ошибка сервера:', data.message);
                         alert('Ошибка: ' + data.message);
-                        this.showScreen('main-menu');
+                        if (this.currentScreen === 'search-screen') {
+                            this.showScreen('main-menu');
+                        }
                     });
                     
                     this.socket.on('leave_success', () => {
@@ -471,21 +582,17 @@
             }
             
             setupEventListeners() {
-                // Кнопка "Играть" - основная логика
                 document.getElementById('play-btn').addEventListener('click', () => {
                     this.playGame();
                 });
                 
-                // Отмена поиска
                 document.getElementById('cancel-search').addEventListener('click', () => {
                     this.cancelSearch();
                 });
                 
-                // Обработка клавиш для движения
                 document.addEventListener('keydown', (e) => this.handleKeyDown(e));
                 document.addEventListener('keyup', (e) => this.handleKeyUp(e));
                 
-                // Заглушки для остальных кнопок
                 const stubButtons = ['shop-btn', 'quests-btn', 'battle-pass-btn', 'friends-btn', 'stats-btn'];
                 stubButtons.forEach(btnId => {
                     document.getElementById(btnId).addEventListener('click', () => {
@@ -493,7 +600,6 @@
                     });
                 });
                 
-                // Обработка закрытия страницы
                 window.addEventListener('beforeunload', () => {
                     if (this.socket) {
                         this.socket.disconnect();
@@ -513,14 +619,21 @@
                 this.canvas.height = window.innerHeight;
             }
             
-            updateConnectionStatus() {
+            updateConnectionStatus(status) {
                 const statusElement = document.getElementById('connection-status');
-                if (this.isConnected) {
-                    statusElement.textContent = '✅ Подключено';
-                    statusElement.className = 'connection-status connected';
-                } else {
-                    statusElement.textContent = '❌ Отключено';
-                    statusElement.className = 'connection-status disconnected';
+                switch(status) {
+                    case 'connected':
+                        statusElement.textContent = '✅ Подключено';
+                        statusElement.className = 'connection-status connected';
+                        break;
+                    case 'disconnected':
+                        statusElement.textContent = '❌ Отключено';
+                        statusElement.className = 'connection-status disconnected';
+                        break;
+                    case 'connecting':
+                        statusElement.textContent = '🔄 Подключение...';
+                        statusElement.className = 'connection-status connecting';
+                        break;
                 }
             }
             
@@ -530,7 +643,6 @@
                     return;
                 }
                 
-                // Запрашиваем имя игрока
                 this.playerName = prompt('Введите ваше имя:', 'Игрок') || 'Игрок';
                 
                 if (this.playerName.trim() === '') {
@@ -539,7 +651,6 @@
                 
                 console.log('🎯 Запуск поиска игры для:', this.playerName);
                 
-                // Показываем экран поиска
                 this.showScreen('search-screen');
                 this.updateSearchInfo({
                     players_count: 1,
@@ -547,7 +658,6 @@
                     time_left: 30
                 });
                 
-                // Отправляем запрос на сервер
                 this.socket.emit('join_game', { name: this.playerName });
             }
             
@@ -560,7 +670,6 @@
             }
             
             showScreen(screenName) {
-                // Останавливаем игровой цикл если он запущен
                 if (this.gameLoopRunning && screenName !== 'game-screen') {
                     this.gameLoopRunning = false;
                 }
@@ -574,7 +683,6 @@
                     targetScreen.classList.add('active');
                     this.currentScreen = screenName;
                     
-                    // Запускаем игровой цикл если перешли в игру
                     if (screenName === 'game-screen' && !this.gameLoopRunning) {
                         this.gameLoopRunning = true;
                         requestAnimationFrame(() => this.gameLoop());
@@ -606,24 +714,18 @@
                     return;
                 }
                 
-                // Очищаем canvas
                 this.ctx.fillStyle = '#666';
                 this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
                 
-                // Рисуем игроков если есть состояние игры
                 if (this.gameState && this.gameState.players) {
                     Object.values(this.gameState.players).forEach(player => {
                         this.drawPlayer(player);
                     });
                 }
                 
-                // Обновляем UI
                 this.updateGameUI();
-                
-                // Обрабатываем движение
                 this.handleMovement();
                 
-                // Продолжаем цикл
                 requestAnimationFrame(() => this.gameLoop());
             }
             
@@ -637,19 +739,16 @@
                 const y = player.position[1] * scaleY;
                 const size = 30 * Math.min(scaleX, scaleY);
                 
-                // Рисуем шарик
                 this.ctx.fillStyle = player.color || '#FF0000';
                 this.ctx.beginPath();
                 this.ctx.arc(x, y, size, 0, Math.PI * 2);
                 this.ctx.fill();
                 
-                // Обводка для текущего игрока
                 if (player.id === this.playerId) {
                     this.ctx.strokeStyle = '#FFFFFF';
                     this.ctx.lineWidth = 3;
                     this.ctx.stroke();
                     
-                    // Дополнительный эффект для своего игрока
                     this.ctx.beginPath();
                     this.ctx.arc(x, y, size + 5, 0, Math.PI * 2);
                     this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
@@ -657,7 +756,6 @@
                     this.ctx.stroke();
                 }
                 
-                // Имя игрока и счет
                 this.ctx.fillStyle = '#FFFFFF';
                 this.ctx.font = `bold ${14 * Math.min(scaleX, scaleY)}px Arial`;
                 this.ctx.textAlign = 'center';
@@ -668,7 +766,6 @@
             updateGameUI() {
                 if (!this.gameState) return;
                 
-                // Таймер игры
                 if (this.gameState.game_time !== undefined) {
                     const minutes = Math.floor(this.gameState.game_time / 60);
                     const seconds = Math.floor(this.gameState.game_time % 60);
@@ -676,12 +773,10 @@
                         `⏰ ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
                 }
                 
-                // Список игроков
                 const playersList = document.getElementById('players-list');
                 if (this.gameState.players) {
                     playersList.innerHTML = '<h3>🏆 Игроки</h3>';
                     
-                    // Сортируем по счету
                     const sortedPlayers = Object.values(this.gameState.players)
                         .sort((a, b) => (b.score || 0) - (a.score || 0));
                     
@@ -700,7 +795,6 @@
                     });
                 }
                 
-                // Счет текущего игрока
                 if (this.gameState.players && this.gameState.players[this.playerId]) {
                     document.getElementById('score-display').textContent = 
                         `🎯 Счет: ${this.gameState.players[this.playerId].score || 0}`;
@@ -710,7 +804,6 @@
             handleKeyDown(e) {
                 if (this.currentScreen !== 'game-screen') return;
                 
-                // Предотвращаем прокрутку страницы
                 if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
                     e.preventDefault();
                 }
@@ -738,7 +831,6 @@
                 let dx = 0, dy = 0;
                 let moved = false;
                 
-                // Обработка клавиш движения
                 if (this.keys['w'] || this.keys['ц'] || this.keys['arrowup']) {
                     dy = -1;
                     moved = true;
@@ -763,7 +855,6 @@
             }
         }
 
-        // Запускаем игру когда страница загружена
         document.addEventListener('DOMContentLoaded', () => {
             window.gameClient = new GameClient();
         });
