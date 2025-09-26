@@ -6,6 +6,7 @@
     <title>Шарики - Мультиплеерная Игра</title>
     <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
     <style>
+        /* Стили остаются такими же, как в предыдущей версии */
         * {
             margin: 0;
             padding: 0;
@@ -121,10 +122,8 @@
             width: 40px;
             height: 40px;
             object-fit: contain;
-            filter: brightness(0) invert(1);
         }
 
-        /* Угловые кнопки */
         #play-btn {
             bottom: 40px;
             right: 40px;
@@ -165,7 +164,6 @@
             background: linear-gradient(135deg, #5a96d6, #6ea6e6);
         }
 
-        /* Боковые кнопки */
         #quests-btn {
             top: 50%;
             left: 40px;
@@ -188,7 +186,6 @@
             background: linear-gradient(135deg, #5a96d6, #6ea6e6);
         }
 
-        /* Экран поиска игры */
         #search-screen {
             background: rgba(0, 0, 0, 0.95);
             z-index: 1000;
@@ -245,7 +242,6 @@
             transform: scale(1.05);
         }
 
-        /* Игровой экран */
         #game-screen {
             background: #666;
         }
@@ -358,69 +354,112 @@
             margin: 10px 0;
             color: #FFD700;
         }
+
+        .server-config {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 8px;
+            z-index: 1001;
+        }
+
+        .server-config input {
+            padding: 5px;
+            border: none;
+            border-radius: 4px;
+            margin-right: 5px;
+            width: 200px;
+        }
+
+        .server-config button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            background: #4682b4;
+            color: white;
+            cursor: pointer;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            z-index: 1002;
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <!-- Статус подключения -->
-    <div id="connection-status" class="connection-status connecting">
-        🔄 Подключение...
+    <div id="notification" class="notification"></div>
+    
+    <div id="connection-status" class="connection-status disconnected">
+        ❌ Отключено
     </div>
 
-    <!-- Главное меню -->
+    <div class="server-config">
+        <input type="text" id="server-url" placeholder="URL сервера" value="https://your-backend.onrender.com">
+        <button id="connect-btn">Подключиться</button>
+    </div>
+
     <div id="main-menu" class="screen active">
         <div class="menu-background">
             <div class="character-container">
-                <img id="main-character" src="classic_guy.png" alt="Главный персонаж">
+                <img id="main-character" src="assets/classic_guy.png" alt="Главный персонаж" onerror="this.style.display='none'">
                 <h2>Шарики</h2>
             </div>
             
             <div class="menu-buttons">
                 <button id="play-btn" class="menu-btn corner-btn">
-                    <img src="icon_play.png" class="btn-icon" alt="Играть">
+                    <img src="assets/icon_play.png" class="btn-icon" alt="Играть" onerror="this.style.display='none'">
                     <span>Играть</span>
                 </button>
                 
                 <button id="shop-btn" class="menu-btn corner-btn">
-                    <img src="icon_shop.png" class="btn-icon" alt="Магазин">
+                    <img src="assets/icon_shop.png" class="btn-icon" alt="Магазин" onerror="this.style.display='none'">
                     <span>Магазин</span>
                 </button>
                 
                 <button id="quests-btn" class="menu-btn side-btn">
-                    <img src="icon_quests.png" class="btn-icon" alt="Квесты">
+                    <img src="assets/icon_quests.png" class="btn-icon" alt="Квесты" onerror="this.style.display='none'">
                     <span>Квесты</span>
                 </button>
                 
                 <button id="battle-pass-btn" class="menu-btn corner-btn">
-                    <img src="icon_battle_pass.png" class="btn-icon" alt="Circle Pass">
+                    <img src="assets/icon_battle_pass.png" class="btn-icon" alt="Circle Pass" onerror="this.style.display='none'">
                     <span>Circle Pass</span>
                 </button>
                 
                 <button id="friends-btn" class="menu-btn side-btn">
-                    <img src="icon_friends.png" class="btn-icon" alt="Друзья">
+                    <img src="assets/icon_friends.png" class="btn-icon" alt="Друзья" onerror="this.style.display='none'">
                     <span>Друзья</span>
                 </button>
                 
                 <button id="stats-btn" class="menu-btn corner-btn">
-                    <img src="icon_statistics.png" class="btn-icon" alt="Статистика">
+                    <img src="assets/icon_statistics.png" class="btn-icon" alt="Статистика" onerror="this.style.display='none'">
                     <span>Статистика</span>
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Экран поиска игры -->
     <div id="search-screen" class="screen">
         <div class="search-container">
             <h2>🔍 Поиск игры</h2>
             <div class="loading-spinner"></div>
-            <div id="player-count" class="search-info">Игроков: 1/6</div>
+            <div id="player-count" class="search-info">Игроков: 0/6</div>
             <div id="countdown-timer" class="search-info">Ожидание игроков: 30с</div>
             <div id="search-message" class="search-info"></div>
             <button id="cancel-search" class="cancel-btn">❌ Отмена поиска</button>
         </div>
     </div>
 
-    <!-- Игровой экран -->
     <div id="game-screen" class="screen">
         <canvas id="game-canvas"></canvas>
         <div id="game-ui">
@@ -452,22 +491,58 @@
                 this.gameLoopRunning = false;
                 this.reconnectAttempts = 0;
                 this.maxReconnectAttempts = 5;
+                this.serverUrl = 'https://your-backend.onrender.com'; // Замените на ваш URL
+                this.pingInterval = null;
                 
                 this.init();
             }
             
             init() {
                 this.setupEventListeners();
-                this.connectToServer();
                 this.setupCanvas();
-                this.updateConnectionStatus('connecting');
+                this.loadServerConfig();
+                
+                // Автоподключение при загрузке
+                setTimeout(() => {
+                    this.connectToServer();
+                }, 1000);
+            }
+            
+            loadServerConfig() {
+                // Попытка загрузить конфигурацию из localStorage
+                const savedUrl = localStorage.getItem('serverUrl');
+                if (savedUrl) {
+                    this.serverUrl = savedUrl;
+                    document.getElementById('server-url').value = savedUrl;
+                }
+            }
+            
+            saveServerConfig() {
+                localStorage.setItem('serverUrl', this.serverUrl);
             }
             
             connectToServer() {
+                // Останавливаем предыдущее соединение
+                if (this.socket) {
+                    this.socket.disconnect();
+                    this.socket = null;
+                }
+                
+                // Получаем URL из input
+                const urlInput = document.getElementById('server-url');
+                this.serverUrl = urlInput.value.trim();
+                this.saveServerConfig();
+                
+                if (!this.serverUrl) {
+                    this.showNotification('Введите URL сервера', 'error');
+                    return;
+                }
+                
                 try {
-                    console.log('🔄 Подключаемся к серверу...');
+                    console.log('🔄 Подключаемся к серверу:', this.serverUrl);
+                    this.updateConnectionStatus('connecting');
                     
-                    this.socket = io('https://server-of-circule.onrender.com', {
+                    this.socket = io(this.serverUrl, {
                         transports: ['websocket', 'polling'],
                         timeout: 10000,
                         reconnection: true,
@@ -476,136 +551,228 @@
                         reconnectionDelayMax: 5000
                     });
                     
-                    this.socket.on('connect', () => {
-                        console.log('✅ Подключено к серверу');
-                        this.isConnected = true;
-                        this.playerId = this.socket.id;
-                        this.reconnectAttempts = 0;
-                        this.updateConnectionStatus('connected');
-                    });
-                    
-                    this.socket.on('disconnect', (reason) => {
-                        console.log('❌ Отключено от сервера:', reason);
-                        this.isConnected = false;
-                        this.updateConnectionStatus('disconnected');
-                        
-                        if (reason === 'io server disconnect') {
-                            this.socket.connect();
-                        }
-                        
-                        if (this.currentScreen !== 'main-menu' && reason !== 'io client disconnect') {
-                            setTimeout(() => {
-                                if (!this.isConnected) {
-                                    alert('Соединение с сервером потеряно. Возврат в главное меню.');
-                                    this.showScreen('main-menu');
-                                }
-                            }, 2000);
-                        }
-                    });
-                    
-                    this.socket.on('connect_error', (error) => {
-                        console.error('Ошибка подключения:', error);
-                        this.isConnected = false;
-                        this.reconnectAttempts++;
-                        this.updateConnectionStatus('connecting');
-                        
-                        if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-                            alert('Не удалось подключиться к серверу. Проверьте, запущен ли сервер.');
-                        }
-                    });
-                    
-                    this.socket.on('reconnect', (attemptNumber) => {
-                        console.log(`✅ Переподключено (попытка ${attemptNumber})`);
-                        this.isConnected = true;
-                        this.updateConnectionStatus('connected');
-                    });
-                    
-                    this.socket.on('reconnect_attempt', (attemptNumber) => {
-                        console.log(`🔄 Попытка переподключения ${attemptNumber}`);
-                        this.updateConnectionStatus('connecting');
-                    });
-                    
-                    this.socket.on('reconnect_failed', () => {
-                        console.error('❌ Не удалось переподключиться');
-                        this.isConnected = false;
-                        this.updateConnectionStatus('disconnected');
-                    });
-                    
-                    // Игровые события
-                    this.socket.on('join_success', (data) => {
-                        console.log('✅ Успешно присоединились к комнате:', data.room_id);
-                        this.roomId = data.room_id;
-                    });
-                    
-                    this.socket.on('room_update', (data) => {
-                        this.updateSearchInfo(data);
-                    });
-                    
-                    this.socket.on('game_start', (data) => {
-                        console.log('🎮 Игра начинается!');
-                        this.gameState = data.game_state;
-                        this.showScreen('game-screen');
-                    });
-                    
-                    this.socket.on('game_state', (gameState) => {
-                        this.gameState = gameState;
-                    });
-                    
-                    this.socket.on('game_over', (results) => {
-                        console.log('🏁 Игра завершена:', results);
-                        const winnerText = `Победитель: ${results.winner_name} со счетом ${results.winner_score}`;
-                        alert(`🎉 Игра завершена!\n${winnerText}`);
-                        this.showScreen('main-menu');
-                    });
-                    
-                    this.socket.on('redirect_to_menu', () => {
-                        this.showScreen('main-menu');
-                    });
-                    
-                    this.socket.on('error', (data) => {
-                        console.error('Ошибка сервера:', data.message);
-                        alert('Ошибка: ' + data.message);
-                        if (this.currentScreen === 'search-screen') {
-                            this.showScreen('main-menu');
-                        }
-                    });
-                    
-                    this.socket.on('leave_success', () => {
-                        console.log('✅ Успешно покинули комнату');
-                        this.roomId = null;
-                    });
+                    this.setupSocketEvents();
                     
                 } catch (error) {
                     console.error('Ошибка при подключении:', error);
-                    alert('Ошибка при подключении к серверу');
+                    this.showNotification('Ошибка подключения к серверу', 'error');
+                    this.updateConnectionStatus('disconnected');
                 }
             }
             
+            setupSocketEvents() {
+                this.socket.on('connect', () => {
+                    console.log('✅ Подключено к серверу');
+                    this.isConnected = true;
+                    this.playerId = this.socket.id;
+                    this.reconnectAttempts = 0;
+                    this.updateConnectionStatus('connected');
+                    this.showNotification('Подключено к серверу', 'success');
+                    
+                    // Запускаем ping для поддержания соединения
+                    this.startPing();
+                });
+                
+                this.socket.on('disconnect', (reason) => {
+                    console.log('❌ Отключено от сервера:', reason);
+                    this.isConnected = false;
+                    this.updateConnectionStatus('disconnected');
+                    this.stopPing();
+                    
+                    if (reason === 'io server disconnect') {
+                        // Сервер принудительно отключил нас
+                        this.socket.connect();
+                    }
+                    
+                    if (this.currentScreen !== 'main-menu') {
+                        setTimeout(() => {
+                            if (!this.isConnected) {
+                                this.showNotification('Соединение с сервером потеряно', 'error');
+                                this.showScreen('main-menu');
+                            }
+                        }, 2000);
+                    }
+                });
+                
+                this.socket.on('connect_error', (error) => {
+                    console.error('Ошибка подключения:', error);
+                    this.isConnected = false;
+                    this.reconnectAttempts++;
+                    this.updateConnectionStatus('connecting');
+                    this.stopPing();
+                    
+                    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+                        this.showNotification('Не удалось подключиться к серверу', 'error');
+                    }
+                });
+                
+                this.socket.on('reconnect', (attemptNumber) => {
+                    console.log(`✅ Переподключено (попытка ${attemptNumber})`);
+                    this.isConnected = true;
+                    this.updateConnectionStatus('connected');
+                    this.showNotification('Переподключено к серверу', 'success');
+                    this.startPing();
+                });
+                
+                this.socket.on('reconnect_attempt', (attemptNumber) => {
+                    console.log(`🔄 Попытка переподключения ${attemptNumber}`);
+                    this.updateConnectionStatus('connecting');
+                });
+                
+                this.socket.on('reconnect_failed', () => {
+                    console.error('❌ Не удалось переподключиться');
+                    this.isConnected = false;
+                    this.updateConnectionStatus('disconnected');
+                    this.showNotification('Не удалось переподключиться', 'error');
+                });
+                
+                // Игровые события
+                this.socket.on('connection_established', (data) => {
+                    console.log('Соединение установлено:', data);
+                });
+                
+                this.socket.on('join_success', (data) => {
+                    console.log('✅ Успешно присоединились к комнате:', data.room_id);
+                    this.roomId = data.room_id;
+                });
+                
+                this.socket.on('room_update', (data) => {
+                    this.updateSearchInfo(data);
+                });
+                
+                this.socket.on('game_start', (data) => {
+                    console.log('🎮 Игра начинается!');
+                    this.gameState = data.game_state;
+                    this.showScreen('game-screen');
+                });
+                
+                this.socket.on('game_state', (gameState) => {
+                    this.gameState = gameState;
+                });
+                
+                this.socket.on('game_over', (results) => {
+                    console.log('🏁 Игра завершена:', results);
+                    const winnerText = `Победитель: ${results.winner_name} со счетом ${results.winner_score}`;
+                    this.showNotification(`Игра завершена! ${winnerText}`, 'info');
+                    this.showScreen('main-menu');
+                });
+                
+                this.socket.on('redirect_to_menu', (data) => {
+                    console.log('Перенаправление в меню');
+                    this.showScreen('main-menu');
+                });
+                
+                this.socket.on('move_acknowledged', (data) => {
+                    // Движение подтверждено сервером
+                });
+                
+                this.socket.on('pong', (data) => {
+                    // Ответ на ping
+                });
+                
+                this.socket.on('error', (data) => {
+                    console.error('Ошибка сервера:', data);
+                    const message = data.message || 'Неизвестная ошибка';
+                    const type = data.type || 'server_error';
+                    
+                    this.showNotification(`Ошибка: ${message}`, 'error');
+                    
+                    if (type === 'join_error' && this.currentScreen === 'search-screen') {
+                        this.showScreen('main-menu');
+                    }
+                });
+                
+                this.socket.on('leave_success', (data) => {
+                    console.log('✅ Успешно покинули комнату');
+                    this.roomId = null;
+                });
+            }
+            
+            startPing() {
+                // Отправляем ping каждые 10 секунд для поддержания соединения
+                this.stopPing();
+                this.pingInterval = setInterval(() => {
+                    if (this.socket && this.isConnected) {
+                        this.socket.emit('ping');
+                    }
+                }, 10000);
+            }
+            
+            stopPing() {
+                if (this.pingInterval) {
+                    clearInterval(this.pingInterval);
+                    this.pingInterval = null;
+                }
+            }
+            
+            showNotification(message, type = 'info') {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.style.display = 'block';
+                
+                // Цвет в зависимости от типа
+                const colors = {
+                    'success': '#4CAF50',
+                    'error': '#f44336',
+                    'info': '#2196F3',
+                    'warning': '#FF9800'
+                };
+                
+                notification.style.background = colors[type] || colors.info;
+                
+                // Автоматическое скрытие
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 5000);
+            }
+            
             setupEventListeners() {
+                // Кнопка подключения к серверу
+                document.getElementById('connect-btn').addEventListener('click', () => {
+                    this.connectToServer();
+                });
+                
+                // Enter в поле URL сервера
+                document.getElementById('server-url').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.connectToServer();
+                    }
+                });
+                
+                // Кнопка "Играть"
                 document.getElementById('play-btn').addEventListener('click', () => {
                     this.playGame();
                 });
                 
+                // Отмена поиска
                 document.getElementById('cancel-search').addEventListener('click', () => {
                     this.cancelSearch();
                 });
                 
+                // Обработка клавиш для движения
                 document.addEventListener('keydown', (e) => this.handleKeyDown(e));
                 document.addEventListener('keyup', (e) => this.handleKeyUp(e));
                 
+                // Заглушки для остальных кнопок
                 const stubButtons = ['shop-btn', 'quests-btn', 'battle-pass-btn', 'friends-btn', 'stats-btn'];
                 stubButtons.forEach(btnId => {
                     document.getElementById(btnId).addEventListener('click', () => {
-                        alert('🚧 Эта функция скоро будет доступна!');
+                        this.showNotification('Эта функция скоро будет доступна!', 'info');
                     });
                 });
                 
+                // Обработка закрытия страницы
                 window.addEventListener('beforeunload', () => {
+                    this.stopPing();
                     if (this.socket) {
                         this.socket.disconnect();
                     }
                 });
             }
+            
+            // Остальные методы (setupCanvas, updateConnectionStatus, playGame, cancelSearch, 
+            // showScreen, updateSearchInfo, gameLoop, drawPlayer, updateGameUI, 
+            // handleKeyDown, handleKeyUp, handleMovement) остаются такими же, как в предыдущей версии
             
             setupCanvas() {
                 this.canvas = document.getElementById('game-canvas');
@@ -621,25 +788,30 @@
             
             updateConnectionStatus(status) {
                 const statusElement = document.getElementById('connection-status');
+                const urlInput = document.getElementById('server-url');
+                
                 switch(status) {
                     case 'connected':
                         statusElement.textContent = '✅ Подключено';
                         statusElement.className = 'connection-status connected';
+                        urlInput.style.border = '2px solid #4CAF50';
                         break;
                     case 'disconnected':
                         statusElement.textContent = '❌ Отключено';
                         statusElement.className = 'connection-status disconnected';
+                        urlInput.style.border = '2px solid #f44336';
                         break;
                     case 'connecting':
                         statusElement.textContent = '🔄 Подключение...';
                         statusElement.className = 'connection-status connecting';
+                        urlInput.style.border = '2px solid #FFC107';
                         break;
                 }
             }
             
             playGame() {
                 if (!this.isConnected) {
-                    alert('❌ Нет подключения к серверу. Попробуйте перезагрузить страницу.');
+                    this.showNotification('Нет подключения к серверу', 'error');
                     return;
                 }
                 
@@ -855,6 +1027,7 @@
             }
         }
 
+        // Запускаем игру когда страница загружена
         document.addEventListener('DOMContentLoaded', () => {
             window.gameClient = new GameClient();
         });
